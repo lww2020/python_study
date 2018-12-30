@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-print('Hello, world!')
-print('学好Python挣大钱!')
+message = "Hello Python world!"
+print(message)
+
+message = "Hello Python Crash Course world!"
+print(message)
