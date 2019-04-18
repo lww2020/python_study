@@ -7,14 +7,16 @@
 # Version:1.1
 #
 #####################################################################################
-LogDir="/data/mysql/shenji/data/"
 HostName=`hostname`
-# find "${LogDir}" -type f -mtime  +30 -name 'db_mysql_*-2019-*' -exec ls -l {} \;
-# find "${LogDir}" -type f -mtime  +30 -name 'db_mysql_*-2019-*' -exec rm -rf  {} \; 
+LogDir="/data/mysql/shenji/data/"
+if [[ -d "${LogDir}" ]]; then
+     # find "${LogDir}" -type f -mtime  +30 -name 'db_mysql_*-20*' -exec ls -l {} \;
+     # find "${LogDir}" -type f -mtime  +30 -name 'db_mysql_*-20*' -exec rm -rf  {} \; 
+     
+     find "${LogDir}" -type f -mtime  +30 -name "${HostName}-20*" -exec rm -rf  {} \;
+else
+     exit
 
-#find "${LogDir}" -type f -mtime  +30 -name 'db_mysql_*-2019-*' -exec ls -l {} \;
-#find "${LogDir}" -type f -mtime  +30 -name 'db_mysql_*-2019-*' -exec rm -rf  {} \; 
-
-find "${LogDir}" -type f -mtime  +30 -name "${HostName}-2019-*" -exec rm -rf  {} \; 
+fi
 
 # End
