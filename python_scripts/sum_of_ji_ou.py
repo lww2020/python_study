@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf8 -*-
 # """
-# 求1-2+3-4+5...+99
+#
 # """
 n = 1
 sum = 0
