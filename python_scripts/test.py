@@ -163,21 +163,121 @@ Python2里，长整型 Long
 #     if i.isupper():
 #         count += 1
 # print(count)
-info = {
-    "k1":18, # 键值对
-    "k2":True,
-    "k3":[
-        11,
-        [],
-        22,
-        33,
-        {
-            "kk1":"vv1",
-            "kk2":"vv2",
-            "kk3":(11,22)
-        },
-    ],
-}
-print(info)
+# info = {
+#     "k1":18, # 键值对
+#     "k2":True,
+#     "k3":[
+#         11,
+#         [],
+#         22,
+#         33,
+#         {
+#             "kk1":"vv1",
+#             "kk2":"vv2",
+#             "kk3":(11,22)
+#         },
+#     ],
+# }
+# # v = info["k1"]
+# # v = info["k3"][4]["kk3"][0]
+# for k,v in info.items():
+#     print(k,v,)
+#
+# dic = {
+#     "k3":"v1",
+#     "k2":"v2"
+# }
+#
+# # v = dic.setdefault("k1","123")
+# # dic.update(k1="123",k3="v3")
+# v = dic.values()
+# print(v)
 
+# 1、数字
+# int
 
+# 2、字符串
+# replace、find、join、strip、startswith、split、upper、format
+# template = "I am {name}, age:{age}"
+# # v = template.format({"name":"alex","age":19})
+# v = template.format(name="alex",age=19)
+# print(v)
+
+# 3、列表
+# apend、extend、insert
+# 索引、切片、循环
+
+# 4、元组
+
+# 5、字典
+# get、update、keys、values、items
+# for、索引
+# dic = {
+#     "k1": "v1"
+# }
+#
+# v  = "v1" in dic.values()
+# print(v)
+
+# 6、
+# 0 、1
+# bool
+# None、"" 、[] 、()、 {}、0、False
+
+dic = {
+    "植物":
+        {"草本植物":
+            ["牵牛花","瓜叶草","葫芦","翠菊","冬小麦"],
+        "木本植物":
+            ["乔木","灌木","如松","杉","樟"],
+        "水生植物":
+            ["菊花","干厨菜","菖蒲","水葱","再力花","梭鱼草"]},
+    "动物":
+        {"两栖动物":
+            ["山龟","山鳌","石蛙","娃娃鱼","蟾蜍","龟","鳄鱼","蜥蜴","蛇"],
+        "禽类":
+            ["雏鸡","原鸡","长鸣鸡","昌国鸡","斗鸡","长尾鸡","乌骨鸡"],
+        "哺乳类动物":
+            ["虎","狼","鼠","貂","猴","树懒","斑马","狗"]}}
+li = []
+go = True
+while go:
+    for i,v in enumerate(dic,1):
+        print(i,v)
+        li.append(v)
+    u_c = input(">>>")
+
+    if u_c == "b":
+        li.clear()
+        break
+    elif u_c == "q":
+        go = False
+        break
+    u_c = int(u_c)
+
+    li1 =[]
+    while go:
+        for i,v in enumerate(dic[li[u_c-1]],1):
+            print(i,v)
+            li1.append(v)
+
+        u_c1 = input(">>>>")
+        if u_c1 == "b":
+            li1.clear()
+            break
+        elif u_c1 == "q":
+            go = False
+            break
+        u_c1 = int(u_c1)
+
+        while go:
+            for i in dic[li[u_c-1]][li1[u_c1-1]]:
+                print(i)
+            u_c2 = str(input(">>>>>"))
+            u_c2 = u_c2.lower()
+            if u_c2 == "b":
+                li1.clear()
+                break
+            elif u_c2 == "q":
+                go = False
+                break
