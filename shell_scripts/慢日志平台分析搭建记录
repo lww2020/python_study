@@ -1,0 +1,309 @@
+慢日志平台搭建
+需要安装的步骤如下：
+
+1、percona-toolkit工具的安装
+2、php web mysql环境的搭建
+# yum install httpd mysql php php-mysql -y libnet-ssleay-perl libcrypt-ssleay-perl  perl perl-CPAN perl-Net-SSLeay perl-IO-Socket-SSL
+3、安装Slowquery并配置
+4、导入慢查询日志
+5、访问界面，查看慢查询
+6、配置邮件报警
+
+工具地址：
+# percona-toolkit工具的安装
+yum -y install perl-DBI perl-DBD-MySQL perl-Time-HiRes perl-IO-Socket-SSL
+yum -y  install http://www.percona.com/downloads/percona-release/redhat/0.1-4/percona-release-0.1-4.noarch.rpm
+yum list | grep percona-toolkit
+yum -y install percona-toolkit
+
+# 安装Slowquery并配置
+https://github.com/hcymysql/slowquery
+[root@mongodb1 ~]# yum install httpd mysql php php-mysql -y
+[root@mongodb1 ~]# mkdir -p /opt/slow_dir
+[root@mongodb1 ~]# cd /opt/slow_dir/
+[root@mongodb1 slow_dir]# unzip /root/slowquery.zip  -d .
+
+工具搭建配置
+
+1、移动到web目录
+[root@mongodb1 slow_dir]# mv slowquery-master/* /var/www/html/
+
+2、进入slowquery/slowquery_table_schema目录下，导入dbinfo_table_schema.sql和slowquery_table_schema.sql表结构文件到你的运维管理机MySQL里。
+
+注：dbinfo表是保存生产MySQL主库的配置信息。
+
+mysql> create database sql_db DEFAULT CHARACTER SET utf8;
+Query OK, 1 row affected (0.00 sec)
+mysql> grant all privileges on *.* to 'admin'@'%' identified by '123456';
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> flush privileges;
+Query OK, 0 rows affected (0.00 sec)
+[root@mongodb1 slow_dir]# mysql sql_db </var/www/html/slowquery_table_schema/dbinfo_table_schema.sql 
+[root@mongodb1 slow_dir]# mysql sql_db </var/www/html/slowquery_table_schema/slowquery_table_schema.sql 
+[root@mongodb1 slow_dir]# 
+
+录入你要监控的MySQL主库配置信息。例：
+ 
+mysql> INSERT INTO sql_db.dbinfo VALUES (1,'192.168.142.137','test_db','test_user','123456',3306);
+
+# 在客户端创建账号
+grant all privileges on *.* to 'test_user'@'%' identified by '123456';
+grant all privileges on *.* to 'test_user'@'localhost' identified by '123456';
+
+3、修改配置文件config.php，将里面的配置改成你的运维管理机MySQL的地址（用户权限最好是管理员）。 例：
+[root@mongodb1 html]# cat /var/www/html/config.php 
+<?php   
+     
+//将里面的配置改成你的运维管理机MySQL的地址
+
+     $con = mysqli_connect("192.168.142.138","admin","123456","sql_db","3306") or die("数据库链接错误".mysqli_connect_error());  
+     mysqli_query($con,"set names utf8");  
+    
+?>  
+[root@mongodb1 html]#
+
+4、修改配置文件soar_con.php，将里面的配置改成你的运维管理机MySQL的地址（用户权限最好是管理员）。 例：
+[root@mongodb1 html]# cat /var/www/html/soar_con.php 
+<?php
+
+//-test-dsn soar测试环境，用来分析SQL使用
+$test_user='admin';
+$test_pwd='123456';
+$test_ip='192.168.142.138';
+$test_port='3306';
+$test_db='test';
+
+?>
+
+5、进入到slowquery/client_agent_script目录下，把slowquery_analysis.sh脚本拷贝到生产MySQL主库上做慢日志分析推送，按照下面的例子做修改：
+
+scp /var/www/html/client_agent_script/slowquery_analysis.sh mysql@192.168.142.137:/data/mysql/scripts/
+[mysql@db137 scripts]$ cat slowquery_analysis.sh 
+#!/bin/bash
+
+#改成你的运维管理机MySQL地址（用户权限最好是管理员）
+slowquery_db_host="192.168.142.138"
+slowquery_db_port="3306"
+slowquery_db_user="admin"
+slowquery_db_password="123456"
+slowquery_db_database="sql_db"
+
+#改成你的生产MySQL主库地址（用户权限最好是管理员）
+mysql_client="/usr/bin/mysql"
+mysql_host="192.168.142.137"
+mysql_port="3306"
+mysql_user="admin"
+mysql_password="123456"
+
+#改成你的生产MySQL主库慢查询目录和慢查询执行时间（单位秒）
+slowquery_dir="/var/run/mysqld/"
+slowquery_long_time=1
+slowquery_file=`$mysql_client -h$mysql_host -P$mysql_port -u$mysql_user -p$mysql_password  -e "show variables like 'slow_query_log_file'"|grep log|awk '{print $2}'`
+
+pt_query_digest="/usr/bin/pt-query-digest"
+
+#改成你的生产MySQL主库server_id
+mysql_server_id=1373306
+
+#collect mysql slowquery log into slowquery database
+$pt_query_digest --user=$slowquery_db_user --password=$slowquery_db_password --port=$slowquery_db_port --review h=$slowquery_db_host,D=$slowquery_db_database,t=mysql_slow_query_review  --history h=$slowquery_db_host,D=$slowquery_db_database,t=mysql_slow_query_review_history  --no-report --limit=100% --filter=" \$event->{add_column} = length(\$event->{arg}) and \$event->{serverid}=$mysql_server_id " $slowquery_file > /tmp/slowquery_analysis.log
+
+##### set a new slow query log ###########
+tmp_log=`$mysql_client -h$mysql_host -P$mysql_port -u$mysql_user -p$mysql_password -e "select concat('$slowquery_dir','slowquery_',date_format(now(),'%Y%m%d%H'),'.log');"|grep log|sed -n -e '2p'`
+
+#config mysql slowquery
+$mysql_client -h$mysql_host -P$mysql_port -u$mysql_user -p$mysql_password -e "set global slow_query_log=1;set global long_query_time=$slowquery_long_time;"
+$mysql_client -h$mysql_host -P$mysql_port -u$mysql_user -p$mysql_password -e "set global slow_query_log_file = '$tmp_log'; "
+
+#delete log before 7 days
+cd $slowquery_dir
+/usr/bin/find ./ -name 'slowquery_*' -mtime +7|xargs rm -f ;
+
+####END####
+[mysql@db137 scripts]$ 
+
+定时任务（10分钟一次）。
+[root@db137 ~]# crontab -l
+
+*/10 * * * * su - mysql -c /bin/bash /data/mysql/scripts/slowquery_analysis.sh > /dev/null 2>&1
+[root@db137 ~]# 
+
+6、别的就没啥配置的了，直接打开浏览器访问slowquery.php就OK了。
+http://192.168.142.138/slowquery.php
+
+
+wget percona.com/get/pt-query-digest
+chmod u+x pt-query-digest
+cp pt-query-digest /usr/bin/
+
+
+
+
+#  https://blog.csdn.net/whzhaochao/article/details/49126037
+
+CREATE TABLE `vote_record_memory` (
+	`id` INT (11) NOT NULL AUTO_INCREMENT,
+	`user_id` VARCHAR (20) NOT NULL,
+	`vote_id` INT (11) NOT NULL,
+	`group_id` INT (11) NOT NULL,
+	`create_time` datetime NOT NULL,
+	PRIMARY KEY (`id`),
+	KEY `index_id` (`user_id`)
+) ENGINE = MEMORY AUTO_INCREMENT = 1 DEFAULT CHARSET = utf8 ;
+
+CREATE TABLE `vote_record` (
+	`id` INT (11) NOT NULL AUTO_INCREMENT,
+	`user_id` VARCHAR (20) NOT NULL,
+	`vote_id` INT (11) NOT NULL,
+	`group_id` INT (11) NOT NULL,
+	`create_time` datetime NOT NULL,
+	PRIMARY KEY (`id`),
+	KEY `index_user_id` (`user_id`) USING HASH
+) ENGINE = INNODB AUTO_INCREMENT = 1 DEFAULT CHARSET = utf8;
+
+
+delimiter //
+CREATE FUNCTION `rand_string`(n INT) RETURNS varchar(255) CHARSET utf8
+BEGIN 
+DECLARE chars_str varchar(100) DEFAULT 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'; 
+DECLARE return_str varchar(255) DEFAULT '' ;
+DECLARE i INT DEFAULT 0; 
+WHILE i < n DO 
+SET return_str = concat(return_str,substring(chars_str , FLOOR(1 + RAND()*62 ),1)); 
+SET i = i +1; 
+END WHILE; 
+RETURN return_str; 
+END  //
+delimiter ;
+ 
+
+delimiter //
+CREATE  PROCEDURE `add_vote_memory`(IN n int)
+BEGIN  
+  DECLARE i INT DEFAULT 1;
+    WHILE (i <= n ) DO
+      INSERT into vote_record_memory  (user_id,vote_id,group_id,create_time ) VALUEs (rand_string(20),FLOOR(RAND() * 1000),FLOOR(RAND() * 100) ,now() );
+			set i=i+1;
+    END WHILE;
+END //
+delimiter ;
+
+
+CALL add_vote_memory(100);
+
+INSERT into vote_record SELECT * from  vote_record_memory ;
+
+insert into vote_record(user_id,vote_id,group_id,create_time) select user_id,vote_id,group_id,create_time from vote_record;
+
+
+7、慢查询邮件推送报警配置。进入到slowquery/alarm_mail/目录里，修改sendmail.php配置信息
+[root@mongodb1 alarm_mail]# pwd
+/var/www/html/alarm_mail
+[root@mongodb1 alarm_mail]# cat sendmail.php
+<?php
+
+$get_mail_content = get_include_contents('get_top100_slowsql.php');
+
+function get_include_contents($filename) {
+    if (is_file($filename)) {
+        ob_start();
+        include $filename;
+        $contents = ob_get_contents();
+        ob_end_clean();
+        return $contents;
+    }
+    return false;
+}
+
+    $smtpserver = "smtp.exmail.qq.com";//SMTP服务器
+    $smtpserverport = 465;//SMTP服务器端口
+    $smtpusermail = "ywnotice@wenba100.com";//SMTP服务器的用户邮箱
+    $smtpemailto = 'weiwei.li@wenba100.com';//发送给谁
+    $smtpuser = "ywnotice@wenba100.com";//SMTP服务器的用户帐号，注：部分邮箱只需@前面的用户名
+    $smtppass = "Zen6UT72mwkBFY9c";//SMTP服务器的授权码
+    $mailtitle='【告警】慢查询报警推送TOP10条,请及时优化.';
+    $mailcontent='下面的慢查询语句或许会影响到数据库的稳定性和健康性，请您在收到此邮件后及时优化语句或代码。数据库的稳定性需要大家的共同努力,感谢您的配合！<br><br>' .$get_mail_content .'<br><br>该邮件由slowquery系统自动发出，请勿回复，语句详细执行情况请登录<a href="http://192.168.142.138">slowquery系统查看.<br><br>';
+
+system("./sendEmail -f $smtpusermail -t $smtpemailto  -s $smtpserver:$smtpserverport -u '$mailtitle' -o message-charset=utf8 -o message-content-type=html -m '$mailcontent' -xu $smtpusermail  -xp '$smtppass'");
+
+?>
+[root@mongodb1 alarm_mail]# 
+
+定时任务（每隔4小时慢查询报警推送一次）
+
+0 */4 * * * cd /var/www/html/alarm_mail; /usr/bin/php /var/www/html/alarm_mail/sendmail.php > /dev/null 2>&1
+
+chmod +x /var/www/html/alarm_mail/sendEmail
+
+ chmod 777 /var/www/html/soar/soar.log 
+
+
+########################### 报警账号###########################
+account ywnotice {
+set ssl-verify=ignore
+set nss-config-dir=/etc/pki/nssdb
+set from=ywnotice@wenba100.com
+set smtp=smtps://smtp.exmail.qq.com:465                                                                                                                                                                     72,1          86%
+set from=ywnotice@wenba100.com
+set smtp=smtps://smtp.exmail.qq.com:465
+set smtp-auth-user=ywnotice@wenba100.com
+set smtp-auth-password=Zen6UT72mwkBFY9c
+set smtp-auth=login
+
+###############################################################
+mail_host= 'smtp.exmail.qq.com'
+mail_user = 'jianyong.lu@wenba100.com'
+mail_pass = 'UxG95VZH2EC3bAVN'
+
+
+# sendmail 
+https://www.cnblogs.com/lemon-le/p/6094601.html?utm_source=itdadao&utm_medium=referral
+
+
+sendEmail下载地址：http://caspian.dotconf.net/menu/Software/SendEmail/
+
+# wget http://caspian.dotconf.net/menu/Software/SendEmail/sendEmail-v1.56.tar.gz //下载1.56版本
+
+# tar -xzvf sendEmail-v1.56.tar.gz //解压后就可以使用了
+# cd sendEmail-v1.56
+# mv sendEmail /usr/local/bin/
+
+
+/usr/local/bin/sendEmail 命令主程序
+
+-f ttlsafrom@163.com  发件人邮箱
+
+-s smtp.163.com       发件人邮箱的smtp服务器
+
+-u "我是邮件主题"     邮件的标题
+
+-o message-content-type=html   邮件内容的格式,html表示它是html格式
+
+-o message-charset=utf8        邮件内容编码
+
+-xu ttlsafrom@163.com          发件人邮箱的用户名
+
+-xp 123456               发件人邮箱密码
+
+-m "我是邮件内容"        邮件的具体内容
+
+-t 12312311231@163.com  收件箱
+
+/usr/local/bin/sendEmail -f jianyong.lu@wenba100.com -t weiwei.li@wenba100.com -s smtp.exmail.qq.com:465 -u 'test20190515' -o message-charset=utf8 -m '测试内容' -xu jianyong.lu@wenba100.com -xp 'UxG95VZH2EC3bAVN'
+
+-o tls=yes -l 1.log -v -v
+
+/usr/local/bin/sendEmail -f weiwei.li@wenba100.com -t weiwei.li@wenba100.com -s smtp.exmail.qq.com:465 -u test20190515 -o message-charset=utf8 -m '测试内容' -xu 'weiwei.li@wenba100.com' -xp 'PCRivbvFW8x67qKb'
+
+[root@mongodb1 alarm_mail]# /usr/local/bin/sendEmail -f 'ywnotice@wenba100.com' -t 'weiwei.li@wenba100.com' -s smtp.exmail.qq.com:465 -u 'test20190515' -o message-charset=utf8 -m '测试内容' -xu 'ywnotice@wenba100.com' -xp 'Zen6UT72mwkBFY9c'  -o tls=yes -l 1.log -v -v
+May 15 14:33:15 mongodb1 sendEmail[3667]: DEBUG => Connecting to smtp.exmail.qq.com:465
+May 15 14:33:15 mongodb1 sendEmail[3667]: DEBUG => My IP address is: 192.168.142.138
+
+
+select * from vote_record where user_id = 'e6CB3g05gSrovdpdGDXK';
+select * from vote_record where user_id = 'RSEuiTn2XsfKODC3cINF';
+select * from vote_record where vote_id =77;
+select * from vote_record where vote_id =41;
+select * from vote_record where group_id = 170;
+ 
