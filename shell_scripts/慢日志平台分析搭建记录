@@ -41,6 +41,8 @@ mysql> create database sql_db DEFAULT CHARACTER SET utf8;
 Query OK, 1 row affected (0.00 sec)
 mysql> grant all privileges on *.* to 'admin'@'%' identified by '123456';
 Query OK, 0 rows affected (0.00 sec)
+grant all privileges on *.* to 'admin'@'fudao_db_cluster_003' identified by '123456';
+
 
 mysql> flush privileges;
 Query OK, 0 rows affected (0.00 sec)
@@ -139,6 +141,8 @@ cd $slowquery_dir
 修改http的配置文件
 vim /etc/httpd/conf/httpd.conf 
 ServerName 10.192.30.60:80
+
+chmod -R 777  /var/www/html/soar/soar*
 
 # 启动服务
 /etc/init.d/httpd restart
