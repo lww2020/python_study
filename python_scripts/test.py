@@ -353,8 +353,16 @@ Python2里，长整型 Long
 # print(v1)
 # print(v2)
 
-test = "I am {name}, age {age}"
-v = test.format_map({"name":"alex","age":23})
+# def func(name,age=18):
+#     print("%s:%s"%(name,age))
+#
+# # 指定参数
+# # func("wupeiqi",19)
+# # 使用默认参数
+# func("alex","浙江")
+#
+# # 注意：默认参数需要放在参数列表最后
 
-print(v)
->>>>>>> 857e541a5eb260fe9bb88b096c29d4d898397af8
+
+
+
