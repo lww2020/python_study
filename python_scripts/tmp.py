@@ -159,9 +159,4 @@
 # while count <=100:
 #     print(count)
 #     count += 1
-# tpl = "I am {}, age {}, {}".format("seven",18,'alex')
-# tpl = "I am {2}, age {1}, {0}".format("seven",18,'alex')
-# tpl = "I am {name}, age {age}, realy {name}".format(name="seven",age=18)
-# tpl = "I am {name}, age {age}, realy {name}".format(**{"name":"alex","age":20})
-tpl = "I am {:s}, age {:d}".format(*["alex",20])
-print(tpl)
+

@@ -5,7 +5,7 @@
 # @Site    : 
 # @File    : test
 # @Software: PyCharm
-<<<<<<< HEAD
+#HEAD
 """
 数字
 字符串
@@ -225,64 +225,64 @@ Python2里，长整型 Long
 # bool
 # None、"" 、[] 、()、 {}、0、False
 
-dic = {
-    "植物":
-        {"草本植物":
-            ["牵牛花","瓜叶草","葫芦","翠菊","冬小麦"],
-        "木本植物":
-            ["乔木","灌木","如松","杉","樟"],
-        "水生植物":
-            ["菊花","干厨菜","菖蒲","水葱","再力花","梭鱼草"]},
-    "动物":
-        {"两栖动物":
-            ["山龟","山鳌","石蛙","娃娃鱼","蟾蜍","龟","鳄鱼","蜥蜴","蛇"],
-        "禽类":
-            ["雏鸡","原鸡","长鸣鸡","昌国鸡","斗鸡","长尾鸡","乌骨鸡"],
-        "哺乳类动物":
-            ["虎","狼","鼠","貂","猴","树懒","斑马","狗"]}}
-li = []
-go = True
-while go:
-    for i,v in enumerate(dic,1):
-        print(i,v)
-        li.append(v)
-    u_c = input(">>>")
-
-    if u_c == "b":
-        li.clear()
-        break
-    elif u_c == "q":
-        go = False
-        break
-    u_c = int(u_c)
-
-    li1 =[]
-    while go:
-        for i,v in enumerate(dic[li[u_c-1]],1):
-            print(i,v)
-            li1.append(v)
-
-        u_c1 = input(">>>>")
-        if u_c1 == "b":
-            li1.clear()
-            break
-        elif u_c1 == "q":
-            go = False
-            break
-        u_c1 = int(u_c1)
-
-        while go:
-            for i in dic[li[u_c-1]][li1[u_c1-1]]:
-                print(i)
-            u_c2 = str(input(">>>>>"))
-            u_c2 = u_c2.lower()
-            if u_c2 == "b":
-                li1.clear()
-                break
-            elif u_c2 == "q":
-                go = False
-                break
-=======
+# dic = {
+#     "植物":
+#         {"草本植物":
+#             ["牵牛花","瓜叶草","葫芦","翠菊","冬小麦"],
+#         "木本植物":
+#             ["乔木","灌木","如松","杉","樟"],
+#         "水生植物":
+#             ["菊花","干厨菜","菖蒲","水葱","再力花","梭鱼草"]},
+#     "动物":
+#         {"两栖动物":
+#             ["山龟","山鳌","石蛙","娃娃鱼","蟾蜍","龟","鳄鱼","蜥蜴","蛇"],
+#         "禽类":
+#             ["雏鸡","原鸡","长鸣鸡","昌国鸡","斗鸡","长尾鸡","乌骨鸡"],
+#         "哺乳类动物":
+#             ["虎","狼","鼠","貂","猴","树懒","斑马","狗"]}}
+# li = []
+# go = True
+# while go:
+#     for i,v in enumerate(dic,1):
+#         print(i,v)
+#         li.append(v)
+#     u_c = input(">>>")
+#
+#     if u_c == "b":
+#         li.clear()
+#         break
+#     elif u_c == "q":
+#         go = False
+#         break
+#     u_c = int(u_c)
+#
+#     li1 =[]
+#     while go:
+#         for i,v in enumerate(dic[li[u_c-1]],1):
+#             print(i,v)
+#             li1.append(v)
+#
+#         u_c1 = input(">>>>")
+#         if u_c1 == "b":
+#             li1.clear()
+#             break
+#         elif u_c1 == "q":
+#             go = False
+#             break
+#         u_c1 = int(u_c1)
+#
+#         while go:
+#             for i in dic[li[u_c-1]][li1[u_c1-1]]:
+#                 print(i)
+#             u_c2 = str(input(">>>>>"))
+#             u_c2 = u_c2.lower()
+#             if u_c2 == "b":
+#                 li1.clear()
+#                 break
+#             elif u_c2 == "q":
+#                 go = False
+#                 break
+#
 
 """
 1、运算符
@@ -363,6 +363,67 @@ Python2里，长整型 Long
 #
 # # 注意：默认参数需要放在参数列表最后
 
+# # 定义函数 #
+# # name 叫做函数func的形式参数，简称：形参
+# def func(name):
+#     print(name)
+# # 执行函数 #
+# # 'wupeiqi' 叫做函数func的实际参数，简称实参
+# func('wupeiqi')
 
+# def func(name, age = 18):
+#     print("%s:%s"%(name,age))
+#
+# # 指定参数
+# func('wupeiqi',19)
+#
+# # 使用默认参数
+# func('alex')
+#
+# # 注意：默认参数需要放在参数列表最后
 
+# def func(*args):
+#     print(args)
+#
+# # 执行方式一
+# # func(11,22,33,4,4454,5)
+#
+# # 执行方式二
+# li = [11,2,2,3,3,4,54]
+# func(*li)
 
+# def func(**keyargs):
+#     print(keyargs)
+#
+# # 执行方式一
+# # func(name='wupeiqi',age=18)
+#
+# # 执行方式二
+# li = {'name': 'wupeiqi', 'age': 18,'gender':'male'}
+# func(**li)
+# def test(x):
+#     """
+#     y = x * 2 + 1
+#     :param x: 整形数字
+#     :return: 返回计算结果
+#     """
+#     y = 2 * x + 1
+#     return y
+# y = test(37)
+# print(y)
+# 函数：
+# def test01():
+#     msg = "test01: hello The little green frog"
+#     print(msg)
+#
+# def test02():
+#     msg = "test02: hello WuDalang"
+#     #print(msg)
+#     return msg
+def test03():
+    msg = "test03..."
+    return 1,2,3,4,'a',['alex']
+# test01()
+# test02()
+v = test03()
+print(v)
