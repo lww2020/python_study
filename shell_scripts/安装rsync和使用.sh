@@ -107,6 +107,7 @@ sync_userpassword
 # 文件权限必须 600
 [root@fudao_db_cluster_002 ~]# chmod 600 /etc/rsyncd.pass
 
+# 测试
 # 将本地/data/mysql/scripts/下的文件目录传输至 10.192.30.60::dbbackup中的/data/backup/下
 [root@fudao_db_cluster_002 ~]#  rsync -auzv --progress  --password-file=/etc/rsyncd.pass /data/mysql/scripts/slowquery_analysis.sh sync_user@10.192.30.60::dbbackup
 
@@ -150,7 +151,7 @@ test_dir/slowquery_analysis.sh
 
 sent 108 bytes  received 2006 bytes  4228.00 bytes/sec
 total size is 4098  speedup is 1.94
-
+  
 
 问题一：
 
