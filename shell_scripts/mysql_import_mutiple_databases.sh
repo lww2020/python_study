@@ -21,7 +21,7 @@ Log_file="/data/mysql/lww/lww_dump/logs"
 
 ls "${Back_dir}"  | while read dbfile;
 do
-        /usr/bin/gunzip "${Back_dir}"/"${dbfile}" | "${Mysql_cmd}"/mysql -h "${Host}" -u"${User_name}" -p"${Pass_word}"
+        /usr/bin/gunzip <"${Back_dir}"/"${dbfile}" | "${Mysql_cmd}"/mysql -h "${Host}" -u"${User_name}" -p"${Pass_word}"
         if [ $? -eq 0 ]; then 
 				echo "${Date_time}" >>"${Log_file}"/"${Host}".import.logs
                 echo ""${dbfile}" ok" >>"${Log_file}"/"${Host}".import.logs
