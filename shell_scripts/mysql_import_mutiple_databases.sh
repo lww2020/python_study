@@ -11,7 +11,7 @@
 #######################################################
 
 Date_time=`date +%F_%H_%M`
-Host="192.168.100.100"
+Host="192.168.100.101"
 User_name="admin"
 Pass_word="admin_password"
 Back_dir="/data/mysql/lww_dump/192.168.100.100_dump"
@@ -30,3 +30,4 @@ do
                 echo ""${dbfile}" error" >>"${Log_file}"/"${Host}".import.logs
         fi 
 done
+
