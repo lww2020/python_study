@@ -420,10 +420,7 @@ Python2里，长整型 Long
 #     msg = "test02: hello WuDalang"
 #     #print(msg)
 #     return msg
-def test03():
-    msg = "test03..."
-    return 1,2,3,4,'a',['alex']
-# test01()
-# test02()
-v = test03()
-print(v)
+def test(x,*agrs):
+    print(x)
+    print(agrs)
+test(1,{"name":"alex"})
